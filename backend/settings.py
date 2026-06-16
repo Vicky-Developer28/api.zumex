@@ -79,6 +79,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "API.middleware.VisitorTrackingMiddleware",
     "API.middleware.DomainRouter",
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -158,6 +160,8 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Base url to serve media files
 MEDIA_URL = 'media/'
+
+STATICFILES_STORAGE = "whitenoise.strorage.CompressedMainfestStaticFilesStorage"
 
 # Path where media is stored
 MEDIA_ROOT = BASE_DIR / 'media'
