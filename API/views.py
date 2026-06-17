@@ -20,7 +20,7 @@ def inquiry_list_create(request):
     logger.info(f"Method: {request.method}")
     logger.info(f"Body: {request.body}")
     if request.method == 'POST':
-        print(f"Test : {request.body}")
+        logger.warning(f'This is a WARNING message.:{request.body}')
         try:
             data = json.loads(request.body)
             inquiry = Inquiry.objects.create(
