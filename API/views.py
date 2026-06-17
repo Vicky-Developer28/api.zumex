@@ -11,6 +11,7 @@ from .models import (
 @csrf_exempt
 def inquiry_list_create(request):
     if request.method == 'POST':
+        print(f"Test : {request.body}")
         try:
             data = json.loads(request.body)
             inquiry = Inquiry.objects.create(
