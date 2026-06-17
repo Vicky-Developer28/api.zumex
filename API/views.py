@@ -47,8 +47,7 @@ def token_required(view_func):
 # -----------------------------------------------------------------------------
 
 # CRITICAL: @csrf_exempt MUST be the top decorator!
-@csrf_exempt
-@token_required
+
 def inquiry_list_create(request):
     logger.info("INQUIRY API CALLED")
     logger.info(f"Method: {request.method}")
@@ -81,8 +80,7 @@ def inquiry_list_create(request):
     # Catch-all for unsupported methods (PUT, DELETE, etc.)
     return JsonResponse({'error': 'Method not allowed'}, status=405)
    
-@csrf_exempt
-@token_required
+
 def inquiry_detail(request, pk):
     inquiry = get_object_or_404(Inquiry, pk=pk)
     if request.method == 'GET':
