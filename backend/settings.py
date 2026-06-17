@@ -14,7 +14,7 @@ load_dotenv(BASE_DIR / '.env')
 # SECURITY WARNING: keep the secret key used in production secret!
 # Raises an error if SECRET_KEY is not found in the environment
 SECRET_KEY = os.environ['SECRET_KEY']
-API_SHARED_SECRET = os.environ('API_SHARED_SECRET')
+API_SHARED_SECRET = os.environ.get('API_SHARED_SECRET')
 # SECURITY WARNING: don't run with debug turned on in production!
 # Evaluates to True if the string is 'True', '1', or 't'
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')
