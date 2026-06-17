@@ -40,18 +40,3 @@ class VisitorTrackingMiddleware:
         if x_forwarded:
             return x_forwarded.split(",")[0]
         return request.META.get("REMOTE_ADDR")
-
-class DomainRouter:
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-        host = request.get_host().lower()
-
-        if "127.0.0.1:6009" in host:
-            request.urlconf = "zumex.root_urls"
-
-        if "127.0.0.1:8000" in host:
-            request.urlconf = "vicky.root_urls"
-
-        return self.get_response(request)
