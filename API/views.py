@@ -1,3 +1,5 @@
+logger.warning("API views.py loaded")
+
 import json
 import logging
 from django.http import JsonResponse, HttpResponse
