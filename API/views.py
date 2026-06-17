@@ -8,19 +8,54 @@ from .models import (
     Inquiry, Feedback, BlogPost, Project, PortfolioProject, 
     Testimonial, Subscriber, Comment, Technology
 )
+import logging
+import json
+from django.conf import settings
+from django.http import JsonResponse, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import get_object_or_404
+from django.db.models import Q
+
+# Import all your models
+from .models import (
+    Inquiry, Feedback, BlogPost, Project, PortfolioProject, 
+    Testimonial, Subscriber, Comment, Technology
+)
 
 logger = logging.getLogger(__name__)
-
 logger.warning("API views.py loaded")
 
+# -----------------------------------------------------------------------------
+# SECURITY DECORATOR
+# -----------------------------------------------------------------------------
+def token_required(view_func):
+    """
+    Ensures that internal API requests contain the shared secret key in the headers.
+    Bypasses standard Django session authentication (preventing 302 redirects).
+    """
+    def wrap(request, *args, **kwargs):
+        auth_header = request.headers.get('Authorization')
+        expected_token = f"Bearer {settings.API_SHARED_SECRET}"
+        
+        if auth_header == expected_token:
+            return view_func(request, *args, **kwargs)
+            
+        logger.warning(f"Unauthorized API access attempt. Header provided: {auth_header}")
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    return wrap
+
+# -----------------------------------------------------------------------------
+# API VIEWS
+# -----------------------------------------------------------------------------
 
 @csrf_exempt
+@token_required
 def inquiry_list_create(request):
     logger.info("INQUIRY API CALLED")
     logger.info(f"Method: {request.method}")
-    logger.info(f"Body: {request.body}")
+    
     if request.method == 'POST':
-        logger.warning(f'This is a WARNING message.:{request.body}')
+        logger.warning(f'Incoming POST body: {request.body}')
         try:
             data = json.loads(request.body)
             inquiry = Inquiry.objects.create(
@@ -33,13 +68,20 @@ def inquiry_list_create(request):
             )
             return JsonResponse({'id': inquiry.id, 'message': 'Inquiry created'}, status=201)
         except Exception as e:
-            print(f"Test ERROR: {e}")
+            logger.error(f"Test ERROR: {e}")
             return JsonResponse({'error': str(e)}, status=400)
         
     elif request.method == 'GET':
-        inquiries = list(Inquiry.objects.values())
-        return JsonResponse(inquiries, safe=False)
+        try:
+            inquiries = list(Inquiry.objects.values())
+            return JsonResponse({'inquiries': inquiries}, safe=False, status=200)
+        except Exception as e:
+            logger.error(f"GET ERROR: {e}")
+            return JsonResponse({'error': str(e)}, status=400)
 
+    # Catch-all for unsupported methods (PUT, DELETE, etc.)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
 @csrf_exempt
 def inquiry_detail(request, pk):
     inquiry = get_object_or_404(Inquiry, pk=pk)
