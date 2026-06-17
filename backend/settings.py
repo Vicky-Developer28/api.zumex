@@ -40,6 +40,16 @@ INSTALLED_APPS = [
     'API',
 
 ]
+CSRF_TRUSTED_ORIGINS = [
+    "https://zumex.is-a.dev",
+    "https://*.onrender.com",
+]
+
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+
+CSRF_COOKIE_SECURE =True
 
 UNFOLD = {
     "SITE_TITLE": "Portfolio Admin",
@@ -150,14 +160,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
-CSRF_TRUSTED_ORIGINS = [
-    "https://zumex.is-a.dev",
-    "https://*.onrender.com",
-]
-
-
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
 # Internationalization
