@@ -24,6 +24,7 @@ def inquiry_list_create(request):
             )
             return JsonResponse({'id': inquiry.id, 'message': 'Inquiry created'}, status=201)
         except Exception as e:
+            print(f"Test ERROR: {e}")
             return JsonResponse({'error': str(e)}, status=400)
         
     elif request.method == 'GET':
