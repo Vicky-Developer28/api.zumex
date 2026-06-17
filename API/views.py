@@ -5,7 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from .models import (
-    Inquiry, Feedback, BlogPost, Project, PortfolioProject, 
+    Inquiry, Feedback, BlogPost, Project, PortfolioProject,
     Testimonial, Subscriber, Comment, Technology
 )
 import logging
@@ -18,7 +18,7 @@ from django.db.models import Q
 
 # Import all your models
 from .models import (
-    Inquiry, Feedback, BlogPost, Project, PortfolioProject, 
+    Inquiry, Feedback, BlogPost, Project, PortfolioProject,
     Testimonial, Subscriber, Comment, Technology
 )
 
@@ -26,14 +26,10 @@ logger = logging.getLogger(__name__)
 logger.warning("API views.py loaded")
 
 # -----------------------------------------------------------------------------
-# THE ULTIMATE SECURITY DECORATOR
+# SECURITY DECORATOR
 # -----------------------------------------------------------------------------
-def api_security(view_func):
-    """
-    Validates the shared secret AND forces Django's CSRF middleware to back off.
-    Replaces the need to use stacked decorators which break Django.
-    """
-    @wraps(view_func)
+def token_required(view_func):
+    @wraps(view_func)  # <-- CRITICAL: This copies the csrf_exempt flag properly
     def wrap(request, *args, **kwargs):
         auth_header = request.headers.get('Authorization')
         expected_token = f"Bearer {settings.API_SHARED_SECRET}"
@@ -43,21 +39,19 @@ def api_security(view_func):
             
         logger.warning(f"Unauthorized API access attempt. Header provided: {auth_header}")
         return JsonResponse({'error': 'Unauthorized'}, status=401)
-        
-    # This single line fixes the 403 CSRF errors
-    wrap.csrf_exempt = True 
     return wrap
 
 # -----------------------------------------------------------------------------
 # API VIEWS
 # -----------------------------------------------------------------------------
 
-# Use the single, powerful decorator here
-@api_security
+# CRITICAL: @csrf_exempt MUST be the top decorator!
+@csrf_exempt
+@token_required
 def inquiry_list_create(request):
     logger.info("INQUIRY API CALLED")
     logger.info(f"Method: {request.method}")
-    
+   
     if request.method == 'POST':
         logger.warning(f'Incoming POST body: {request.body}')
         try:
@@ -74,7 +68,7 @@ def inquiry_list_create(request):
         except Exception as e:
             logger.error(f"Test ERROR: {e}")
             return JsonResponse({'error': str(e)}, status=400)
-        
+       
     elif request.method == 'GET':
         try:
             inquiries = list(Inquiry.objects.values())
@@ -85,8 +79,9 @@ def inquiry_list_create(request):
 
     # Catch-all for unsupported methods (PUT, DELETE, etc.)
     return JsonResponse({'error': 'Method not allowed'}, status=405)
-    
-@api_security
+   
+@csrf_exempt
+@token_required
 def inquiry_detail(request, pk):
     inquiry = get_object_or_404(Inquiry, pk=pk)
     if request.method == 'GET':
@@ -101,7 +96,8 @@ def inquiry_detail(request, pk):
         inquiry.delete()
         return HttpResponse(status=204)
 
-@api_security
+@csrf_exempt
+@token_required
 def feedback_list_create(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -117,7 +113,8 @@ def feedback_list_create(request):
         feedbacks = list(Feedback.objects.filter(approved=True).values())
         return JsonResponse(feedbacks, safe=False)
 
-@api_security
+@csrf_exempt
+@token_required
 def newsletter_subscribe(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -127,7 +124,8 @@ def newsletter_subscribe(request):
             return JsonResponse({'message': 'Successfully subscribed', 'created': created}, status=201)
         return JsonResponse({'error': 'Email is required'}, status=400)
 
-@api_security
+@csrf_exempt
+@token_required
 def ai_query_handler(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -135,14 +133,16 @@ def ai_query_handler(request):
         bot_reply = f"AI Processed: {user_query}"
         return JsonResponse({'response': bot_reply}, status=200)
 
-@api_security
+@csrf_exempt
+@token_required
 def api_zumex_home(request):
     if request.method == 'GET':
         projects = list(PortfolioProject.objects.values('id', 'title', 'category', 'image_url')[:6])
         testimonials = list(Testimonial.objects.filter(is_active=True).values('id', 'name', 'role', 'category', 'content'))
         return JsonResponse({'projects': projects, 'testimonials': testimonials})
 
-@api_security
+@csrf_exempt
+@token_required
 def api_vicky_blogs(request):
     if request.method == 'GET':
         posts = list(BlogPost.objects.filter(status="published").values(
@@ -150,13 +150,14 @@ def api_vicky_blogs(request):
         ).order_by("-published_at"))
         return JsonResponse({'posts': posts})
 
-@api_security
+@csrf_exempt
+@token_required
 def api_blog_detail(request, slug):
     if request.method == 'GET':
         post = get_object_or_404(BlogPost, slug=slug, status="published")
         post.views += 1
         post.save(update_fields=["views"])
-        
+       
         post_data = {
             'id': post.id,
             'title': post.title,
@@ -168,15 +169,16 @@ def api_blog_detail(request, slug):
             'created_at': post.created_at.isoformat() if post.created_at else None,
             'category': post.category.name if post.category else None,
         }
-        
+       
         comments = list(post.comments.filter(approved=True).order_by("-created_at").values('name', 'content', 'created_at'))
-        
+       
         related = list(BlogPost.objects.filter(category=post.category, status="published")
                        .exclude(id=post.id).values('title', 'slug', 'excerpt')[:3])
 
         return JsonResponse({'post': post_data, 'comments': comments, 'related_posts': related})
 
-@api_security
+@csrf_exempt
+@token_required
 def api_blog_comment(request, slug):
     if request.method == 'POST':
         post = get_object_or_404(BlogPost, slug=slug)
@@ -186,11 +188,12 @@ def api_blog_comment(request, slug):
             name=data.get('name'),
             email=data.get('email'),
             content=data.get('content'),
-            approved=True 
+            approved=True
         )
         return JsonResponse({'message': 'Comment submitted successfully'}, status=201)
 
-@api_security
+@csrf_exempt
+@token_required
 def api_vicky_blogs_search(request):
     if request.method == 'GET':
         query = request.GET.get('q', '')
@@ -203,23 +206,24 @@ def api_vicky_blogs_search(request):
                 Q(category__name__icontains=query) |
                 Q(tags__name__icontains=query)
             ).distinct()
-        
+       
         posts_data = list(posts.values('title', 'slug', 'excerpt', 'read_time', 'views'))
         return JsonResponse({'posts': posts_data, 'query': query})
 
-@api_security
+@csrf_exempt
+@token_required
 def api_project_list(request):
     if request.method == 'GET':
         projects = Project.objects.prefetch_related("technologies").select_related("category")
-        
+       
         technology = request.GET.get("technology")
         search = request.GET.get("q")
-        
+       
         if technology:
             projects = projects.filter(technologies__slug=technology)
         if search:
             projects = projects.filter(title__icontains=search)
-            
+           
         projects_data = []
         for p in projects:
             projects_data.append({
@@ -229,16 +233,18 @@ def api_project_list(request):
                 'category': p.category.name if p.category else None,
                 'technologies': [tech.name for tech in p.technologies.all()]
             })
-            
+           
         tech_list = list(Technology.objects.values('name', 'slug'))
-        
+       
         return JsonResponse({
             'projects': projects_data,
             'technologies': tech_list,
             'active_technology': technology,
             'search': search
         })
-@api_security
+
+@csrf_exempt
+@token_required
 def api_project_detail(request, slug):
     if request.method == 'GET':
         project = get_object_or_404(Project.objects.prefetch_related("technologies"), slug=slug)
@@ -251,3 +257,5 @@ def api_project_detail(request, slug):
             'technologies': [tech.name for tech in project.technologies.all()]
         }
         return JsonResponse({'project': data})
+
+
