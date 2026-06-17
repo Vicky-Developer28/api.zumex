@@ -98,7 +98,6 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
 
-    'API.middleware.StatelessAPIMiddleware',
     'API.middleware.VisitorTrackingMiddleware',
     
     'django.contrib.sessions.middleware.SessionMiddleware',
