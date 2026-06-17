@@ -40,16 +40,25 @@ INSTALLED_APPS = [
     'API',
 
 ]
+
+
 CSRF_TRUSTED_ORIGINS = [
     "https://zumex.is-a.dev",
     "https://*.onrender.com",
+    "https://zumex.onrender.com",
+    "https://api-zumex.onrender.com",
 ]
 
-
+CORS_ALLOWED_ORIGINS = [
+        "https://zumex.is-a.dev",
+    "https://*.onrender.com",
+    "https://zumex.onrender.com",
+    "https://api=zumex.onrender.com",
+]
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
-
 CSRF_COOKIE_SECURE =True
+USE_X_FORWARDED_HOST = True
+
 
 UNFOLD = {
     "SITE_TITLE": "Portfolio Admin",
