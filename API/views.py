@@ -1,4 +1,5 @@
 import json
+import logging
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
@@ -7,9 +8,12 @@ from .models import (
     Inquiry, Feedback, BlogPost, Project, PortfolioProject, 
     Testimonial, Subscriber, Comment, Technology
 )
-
+logger = logging.getLogger(__name__)
 @csrf_exempt
 def inquiry_list_create(request):
+    logger.info("INQUIRY API CALLED")
+    logger.info(f"Method: {request.method}")
+    logger.info(f"Body: {request.body}")
     if request.method == 'POST':
         print(f"Test : {request.body}")
         try:
