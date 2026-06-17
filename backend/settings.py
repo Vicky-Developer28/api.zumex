@@ -75,17 +75,18 @@ UNFOLD = {
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    "API.middleware.VisitorTrackingMiddleware",
-    "API.middleware.DomainRouter",
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+
+    'API.middleware.VisitorTrackingMiddleware',
 ]
+
 
 ROOT_URLCONF = 'backend.urls'
 
@@ -136,6 +137,14 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://zumex.is-a.dev",
+    "https://*.onrender.com",
+]
+
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
@@ -165,7 +174,11 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # Base url to serve media files
 MEDIA_URL = 'media/'
 
-STATICFILES_STORAGE = "whitenoise.strorage.CompressedMainfestStaticFilesStorage"
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Path where media is stored
 MEDIA_ROOT = BASE_DIR / 'media'
