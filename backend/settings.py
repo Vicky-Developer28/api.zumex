@@ -24,6 +24,10 @@ allowed_hosts_env = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost')
 ALLOWED_HOSTS = allowed_hosts_env.split(',')
 
 # Application definition
+SUPER_USER = os.getenv("SUPER_USER")
+SUPER_USER_EMAIL = os.getenv("SUPER_USER_EMAIL")
+SUPER_USER_PWD = os.getenv("SUPER_USER_PWD")
+
 
 INSTALLED_APPS = [
     'unfold',
