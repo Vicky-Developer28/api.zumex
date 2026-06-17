@@ -80,7 +80,7 @@ MIDDLEWARE = [
     "API.middleware.VisitorTrackingMiddleware",
     "API.middleware.DomainRouter",
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
