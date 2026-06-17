@@ -152,27 +152,27 @@ def ai_query_handler(request):
 @token_required
 @require_GET
 def api_zumex_home(request):
-    # 1. Fetch the projects using select_related to efficiently get the category names
-    project_qs = PortfolioProject.objects.select_related('category').all()[:6]
+    # Removed select_related('category') since it is a standard field
+    project_qs = PortfolioProject.objects.all()[:6]
     
     projects = []
     for p in project_qs:
-        # 2. Safely resolve the image URL whether it's an uploaded ImageField or a text URL
+        # Safely resolve the image URL whether it's an uploaded ImageField or a text URL
         img_url = ''
         if hasattr(p, 'image') and p.image:
             img_url = p.image.url
         elif hasattr(p, 'image_url') and p.image_url:
             img_url = p.image_url
 
-        # 3. Construct a clean dictionary for the JSON response
+        # Construct a clean dictionary for the JSON response
         projects.append({
             'id': p.id,
             'title': p.title,
-            'category': p.category.name if hasattr(p, 'category') and p.category else '',
+            # Simply access the category field directly
+            'category': p.category if hasattr(p, 'category') else '',
             'image_url': img_url
         })
 
-    # Testimonials can likely stay as .values() assuming they don't have ForeignKeys or ImageFields
     testimonials = list(Testimonial.objects.filter(is_active=True).values('id', 'name', 'role', 'category', 'content'))
     
     return JsonResponse({'projects': projects, 'testimonials': testimonials})
