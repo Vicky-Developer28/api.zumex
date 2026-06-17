@@ -44,7 +44,7 @@ def token_required(view_func):
 # -----------------------------------------------------------------------------
 # API VIEWS
 # -----------------------------------------------------------------------------
-
+@csrf_exempt
 @token_required
 @require_http_methods(["GET", "POST"])
 def inquiry_list_create(request):
@@ -73,7 +73,7 @@ def inquiry_list_create(request):
     except Exception as e:
         logger.error(f"Inquiry Fetch Error: {e}")
         return JsonResponse({'error': 'Failed to fetch inquiries'}, status=500)
-
+@csrf_exempt
 @token_required
 @require_http_methods(["GET", "PATCH", "DELETE"])
 def inquiry_detail(request, pk):
@@ -96,6 +96,7 @@ def inquiry_detail(request, pk):
         inquiry.delete()
         return HttpResponse(status=204)
 
+@csrf_exempt
 @token_required
 @require_http_methods(["GET", "POST"])
 def feedback_list_create(request):
@@ -117,6 +118,7 @@ def feedback_list_create(request):
     feedbacks = list(Feedback.objects.filter(approved=True).values())
     return JsonResponse(feedbacks, safe=False)
 
+@csrf_exempt
 @token_required
 @require_POST
 def newsletter_subscribe(request):
@@ -131,6 +133,7 @@ def newsletter_subscribe(request):
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON payload'}, status=400)
 
+@csrf_exempt
 @token_required
 @require_POST
 def ai_query_handler(request):
@@ -142,6 +145,7 @@ def ai_query_handler(request):
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON payload'}, status=400)
 
+@csrf_exempt
 @token_required
 @require_GET
 def api_zumex_home(request):
@@ -149,6 +153,7 @@ def api_zumex_home(request):
     testimonials = list(Testimonial.objects.filter(is_active=True).values('id', 'name', 'role', 'category', 'content'))
     return JsonResponse({'projects': projects, 'testimonials': testimonials})
 
+@csrf_exempt
 @token_required
 @require_GET
 def api_vicky_blogs(request):
@@ -157,6 +162,7 @@ def api_vicky_blogs(request):
     ).order_by("-published_at"))
     return JsonResponse({'posts': posts})
 
+@csrf_exempt
 @token_required
 @require_GET
 def api_blog_detail(request, slug):
@@ -185,6 +191,7 @@ def api_blog_detail(request, slug):
 
     return JsonResponse({'post': post_data, 'comments': comments, 'related_posts': related})
 
+@csrf_exempt
 @token_required
 @require_POST
 def api_blog_comment(request, slug):
@@ -202,6 +209,7 @@ def api_blog_comment(request, slug):
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON payload'}, status=400)
 
+@csrf_exempt
 @token_required
 @require_GET
 def api_vicky_blogs_search(request):
@@ -220,6 +228,7 @@ def api_vicky_blogs_search(request):
     posts_data = list(posts.values('title', 'slug', 'excerpt', 'read_time', 'views'))
     return JsonResponse({'posts': posts_data, 'query': query})
 
+@csrf_exempt
 @token_required
 @require_GET
 def api_project_list(request):
@@ -253,6 +262,7 @@ def api_project_list(request):
         'search': search
     })
 
+@csrf_exempt
 @token_required
 @require_GET
 def api_project_detail(request, slug):
