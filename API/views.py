@@ -10,6 +10,7 @@ from .models import (
 )
 import logging
 import json
+from functools import wraps
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
