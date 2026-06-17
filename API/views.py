@@ -26,13 +26,14 @@ logger = logging.getLogger(__name__)
 logger.warning("API views.py loaded")
 
 # -----------------------------------------------------------------------------
-# SECURITY DECORATOR
+# THE ULTIMATE SECURITY DECORATOR
 # -----------------------------------------------------------------------------
-def token_required(view_func):
+def api_security(view_func):
     """
-    Ensures that internal API requests contain the shared secret key in the headers.
-    Bypasses standard Django session authentication (preventing 302 redirects).
+    Validates the shared secret AND forces Django's CSRF middleware to back off.
+    Replaces the need to use stacked decorators which break Django.
     """
+    @wraps(view_func)
     def wrap(request, *args, **kwargs):
         auth_header = request.headers.get('Authorization')
         expected_token = f"Bearer {settings.API_SHARED_SECRET}"
@@ -42,14 +43,17 @@ def token_required(view_func):
             
         logger.warning(f"Unauthorized API access attempt. Header provided: {auth_header}")
         return JsonResponse({'error': 'Unauthorized'}, status=401)
+        
+    # This single line fixes the 403 CSRF errors
+    wrap.csrf_exempt = True 
     return wrap
 
 # -----------------------------------------------------------------------------
 # API VIEWS
 # -----------------------------------------------------------------------------
 
-@csrf_exempt
-@token_required
+# Use the single, powerful decorator here
+@api_security
 def inquiry_list_create(request):
     logger.info("INQUIRY API CALLED")
     logger.info(f"Method: {request.method}")
@@ -82,7 +86,7 @@ def inquiry_list_create(request):
     # Catch-all for unsupported methods (PUT, DELETE, etc.)
     return JsonResponse({'error': 'Method not allowed'}, status=405)
     
-@csrf_exempt
+@api_security
 def inquiry_detail(request, pk):
     inquiry = get_object_or_404(Inquiry, pk=pk)
     if request.method == 'GET':
@@ -97,7 +101,7 @@ def inquiry_detail(request, pk):
         inquiry.delete()
         return HttpResponse(status=204)
 
-@csrf_exempt
+@api_security
 def feedback_list_create(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -113,7 +117,7 @@ def feedback_list_create(request):
         feedbacks = list(Feedback.objects.filter(approved=True).values())
         return JsonResponse(feedbacks, safe=False)
 
-@csrf_exempt
+@api_security
 def newsletter_subscribe(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -123,7 +127,7 @@ def newsletter_subscribe(request):
             return JsonResponse({'message': 'Successfully subscribed', 'created': created}, status=201)
         return JsonResponse({'error': 'Email is required'}, status=400)
 
-@csrf_exempt
+@api_security
 def ai_query_handler(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -131,14 +135,14 @@ def ai_query_handler(request):
         bot_reply = f"AI Processed: {user_query}"
         return JsonResponse({'response': bot_reply}, status=200)
 
-@csrf_exempt
+@api_security
 def api_zumex_home(request):
     if request.method == 'GET':
         projects = list(PortfolioProject.objects.values('id', 'title', 'category', 'image_url')[:6])
         testimonials = list(Testimonial.objects.filter(is_active=True).values('id', 'name', 'role', 'category', 'content'))
         return JsonResponse({'projects': projects, 'testimonials': testimonials})
 
-@csrf_exempt
+@api_security
 def api_vicky_blogs(request):
     if request.method == 'GET':
         posts = list(BlogPost.objects.filter(status="published").values(
@@ -146,7 +150,7 @@ def api_vicky_blogs(request):
         ).order_by("-published_at"))
         return JsonResponse({'posts': posts})
 
-@csrf_exempt
+@api_security
 def api_blog_detail(request, slug):
     if request.method == 'GET':
         post = get_object_or_404(BlogPost, slug=slug, status="published")
@@ -172,7 +176,7 @@ def api_blog_detail(request, slug):
 
         return JsonResponse({'post': post_data, 'comments': comments, 'related_posts': related})
 
-@csrf_exempt
+@api_security
 def api_blog_comment(request, slug):
     if request.method == 'POST':
         post = get_object_or_404(BlogPost, slug=slug)
@@ -186,7 +190,7 @@ def api_blog_comment(request, slug):
         )
         return JsonResponse({'message': 'Comment submitted successfully'}, status=201)
 
-@csrf_exempt
+@api_security
 def api_vicky_blogs_search(request):
     if request.method == 'GET':
         query = request.GET.get('q', '')
@@ -203,7 +207,7 @@ def api_vicky_blogs_search(request):
         posts_data = list(posts.values('title', 'slug', 'excerpt', 'read_time', 'views'))
         return JsonResponse({'posts': posts_data, 'query': query})
 
-@csrf_exempt
+@api_security
 def api_project_list(request):
     if request.method == 'GET':
         projects = Project.objects.prefetch_related("technologies").select_related("category")
@@ -234,8 +238,7 @@ def api_project_list(request):
             'active_technology': technology,
             'search': search
         })
-
-@csrf_exempt
+@api_security
 def api_project_detail(request, slug):
     if request.method == 'GET':
         project = get_object_or_404(Project.objects.prefetch_related("technologies"), slug=slug)
