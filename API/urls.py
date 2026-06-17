@@ -1,8 +1,6 @@
 from django.urls import path
 from . import views
 
-app_name = 'api'
-
 urlpatterns = [
     # Inquiries
     path('inquiries/', views.inquiry_list_create, name='inquiries'),
