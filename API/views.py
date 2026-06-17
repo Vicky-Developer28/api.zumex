@@ -1,8 +1,4 @@
-
 import logging
-
-logger.warning("API views.py loaded")
-
 import json
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -12,7 +8,12 @@ from .models import (
     Inquiry, Feedback, BlogPost, Project, PortfolioProject, 
     Testimonial, Subscriber, Comment, Technology
 )
+
 logger = logging.getLogger(__name__)
+
+logger.warning("API views.py loaded")
+
+
 @csrf_exempt
 def inquiry_list_create(request):
     logger.info("INQUIRY API CALLED")
