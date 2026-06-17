@@ -17,7 +17,7 @@ SECRET_KEY = os.environ['SECRET_KEY']
 API_SHARED_SECRET = os.environ.get('API_SHARED_SECRET')
 # SECURITY WARNING: don't run with debug turned on in production!
 # Evaluates to True if the string is 'True', '1', or 't'
-DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')
+DEBUG = os.getenv('DEBUG', 'False')
 
 # Parses the comma-separated string from .env into a Python list
 allowed_hosts_env = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost')
